@@ -89,15 +89,7 @@ const assignTask = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-const getTasksByUser = async (req, res, next) => {
-  try {
-    const tasks = await Task.find({ assignedTo: req.params.userId }).populate('assignedTo', 'name email');
-    res.json({ success: true, data: tasks });
-  } catch (err) { next(err); }
-};
-
 module.exports = {
   getAllTasks, getTaskById, createTask, updateTask, patchTask, deleteTask,
-  markComplete, updateProgress, filterByStatus, searchByTitle, assignTask, 
-  getTasksByUser
+  markComplete, updateProgress, filterByStatus, searchByTitle, assignTask
 };
