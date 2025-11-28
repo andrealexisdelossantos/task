@@ -13,7 +13,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
 
 // Routes
-app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/v1/tasks', require('./routes/taskRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
