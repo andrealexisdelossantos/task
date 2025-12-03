@@ -62,8 +62,8 @@ const swaggerOptions = {
           type: 'object',
           properties: {
             _id: { type: 'string', example: '507f1f77bcf86cd799439012' },
-            name: { type: 'string', example: 'John Doe' },
-            email: { type: 'string', example: 'john@example.com' },
+            name: { type: 'string', example: 'Cha Eunwoo' },
+            email: { type: 'string', example: 'eunwoo@example.com' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' }
           }

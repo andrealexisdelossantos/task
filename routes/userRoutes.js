@@ -3,6 +3,11 @@ const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const controller = require('../controllers/userController');
 
+
+router.get('/:userId/tasks', authMiddleware, controller.getTasksByUser);
+
+module.exports = router;
+
 /**
  * @swagger
  * /api/v1/users/{userId}/tasks:
@@ -46,6 +51,3 @@ const controller = require('../controllers/userController');
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:userId/tasks', authMiddleware, controller.getTasksByUser);
-
-module.exports = router;

@@ -5,6 +5,23 @@ const validateTask = require('../middlewares/validateTask');
 const authMiddleware = require('../middlewares/authMiddleware');
 const controller = require('../controllers/taskController');
 
+
+router.get('/search/title', controller.searchByTitle);
+router.get('/search/title', controller.searchByTitle);
+
+router.get('/', controller.getAllTasks);
+router.post('/', authMiddleware, validateTask, controller.createTask);
+router.get('/:id', controller.getTaskById);
+router.put('/:id', authMiddleware, validateTask, controller.updateTask);
+router.patch('/:id', authMiddleware, controller.patchTask);
+router.delete('/:id', authMiddleware, controller.deleteTask);
+router.put('/:id/complete', authMiddleware, controller.markComplete);
+
+router.put('/:id/progress', authMiddleware, controller.updateProgress);
+router.post('/:id/assign', authMiddleware, controller.assignTask);
+
+module.exports = router;
+
 /**
  * @swagger
  * /api/v1/tasks/status/{status}:
@@ -41,7 +58,6 @@ const controller = require('../controllers/taskController');
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/status/:status', controller.filterByStatus);
 
 /**
  * @swagger
@@ -71,7 +87,7 @@ router.get('/status/:status', controller.filterByStatus);
  *                   items:
  *                     $ref: '#/components/schemas/Task'
  */
-router.get('/search/title', controller.searchByTitle);
+
 
 /**
  * @swagger
@@ -149,8 +165,7 @@ router.get('/search/title', controller.searchByTitle);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', controller.getAllTasks);
-router.post('/', authMiddleware, validateTask, controller.createTask);
+
 
 /**
  * @swagger
@@ -292,10 +307,6 @@ router.post('/', authMiddleware, validateTask, controller.createTask);
  *       404:
  *         description: Task not found
  */
-router.get('/:id', controller.getTaskById);
-router.put('/:id', authMiddleware, validateTask, controller.updateTask);
-router.patch('/:id', authMiddleware, controller.patchTask);
-router.delete('/:id', authMiddleware, controller.deleteTask);
 
 /**
  * @swagger
@@ -324,7 +335,7 @@ router.delete('/:id', authMiddleware, controller.deleteTask);
  *                 data:
  *                   $ref: '#/components/schemas/Task'
  */
-router.put('/:id/complete', authMiddleware, controller.markComplete);
+
 
 /**
  * @swagger
@@ -364,7 +375,7 @@ router.put('/:id/complete', authMiddleware, controller.markComplete);
  *                 data:
  *                   $ref: '#/components/schemas/Task'
  */
-router.put('/:id/progress', authMiddleware, controller.updateProgress);
+
 
 /**
  * @swagger
@@ -406,6 +417,3 @@ router.put('/:id/progress', authMiddleware, controller.updateProgress);
  *       404:
  *         description: Task or User not found
  */
-router.post('/:id/assign', authMiddleware, controller.assignTask);
-
-module.exports = router;
