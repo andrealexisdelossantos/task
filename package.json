@@ -1,14 +1,23 @@
 {
   "name": "it_task",
   "version": "1.0.0",
-  "description": "",
+  "description": "Task Management API - A RESTful API for managing tasks with Express.js, Mongoose, and MongoDB",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [],
+  "keywords": [
+    "api",
+    "rest",
+    "express",
+    "mongodb",
+    "mongoose",
+    "tasks",
+    "todo",
+    "swagger"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {

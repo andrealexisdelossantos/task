@@ -5,17 +5,19 @@ const validateTask = require('../middlewares/validateTask');
 const controller = require('../controllers/taskController');
 
 
+// Search and filter routes (must come before /:id routes)
 router.get('/search/title', controller.searchByTitle);
-router.get('/search/title', controller.searchByTitle);
+router.get('/status/:status', controller.filterByStatus);
 
+// CRUD routes
 router.get('/', controller.getAllTasks);
 router.post('/',  validateTask, controller.createTask);
 router.get('/:id', controller.getTaskById);
 router.put('/:id', validateTask, controller.updateTask);
 router.patch('/:id', controller.patchTask);
 router.delete('/:id',  controller.deleteTask);
+// Additional task operations
 router.put('/:id/complete', controller.markComplete);
-
 router.put('/:id/progress', controller.updateProgress);
 router.post('/:id/assign', controller.assignTask);
 
@@ -35,6 +37,7 @@ module.exports = router;
  *           type: string
  *           enum: [pending, in-progress, completed]
  *         description: Task status to filter by
+ *         example: pending
  *     responses:
  *       200:
  *         description: Tasks retrieved successfully
@@ -50,6 +53,15 @@ module.exports = router;
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Task'
+ *                 count:
+ *                   type: number
+ *                   example: 5
+ *       400:
+ *         description: Invalid status value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -70,7 +82,8 @@ module.exports = router;
  *         required: true
  *         schema:
  *           type: string
- *         description: Search query string
+ *         description: Search query string (case-insensitive)
+ *         example: project
  *     responses:
  *       200:
  *         description: Search results
@@ -81,10 +94,29 @@ module.exports = router;
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Task'
+ *                 count:
+ *                   type: number
+ *                   example: 3
+ *                 query:
+ *                   type: string
+ *                   example: project
+ *       400:
+ *         description: Missing or invalid query parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 
 

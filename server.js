@@ -8,6 +8,13 @@ const swaggerJsdoc = require('swagger-jsdoc');
 
 const app = express();
 
+// Debug: Check if .env is loaded (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('🔍 Environment check:');
+  console.log('   MONGODB_URI:', process.env.MONGODB_URI ? '✅ Set' : '❌ Not set');
+  console.log('   PORT:', process.env.PORT || '3000 (default)');
+}
+
 // Connect to MongoDB
 connectDB();
 
@@ -34,8 +41,21 @@ const swaggerOptions = {
         description: 'Production Server (update after deployment)'
       }
     ],
-    
+    tags: [
+      {
+        name: 'Tasks',
+        description: 'Task management endpoints'
       },
+      {
+        name: 'Users',
+        description: 'User-related endpoints'
+      },
+      {
+        name: 'Health',
+        description: 'Health check endpoint'
+      }
+    ],
+    components: {
       schemas: {
         Task: {
           type: 'object',
@@ -69,6 +89,8 @@ const swaggerOptions = {
             message: { type: 'string' }
           }
         }
+      }
+    }
   },
   apis: ['./routes/*.js']
 };
@@ -77,26 +99,104 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Middleware
-app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
-app.use(express.json());
+app.use(helmet({
+  contentSecurityPolicy: false, // Allow Swagger UI to work
+}));
 
-// Routes
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Root route - Welcome message with API info
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Welcome to Task Management API',
+    version: '1.0.0',
+    endpoints: {
+      documentation: '/api-docs',
+      health: '/health',
+      tasks: '/api/v1/tasks',
+      users: '/api/v1/users'
+    },
+    status: 'Server is running'
+  });
+});
+
+// API Routes
 app.use('/api/v1/tasks', require('./routes/taskRoutes'));
 app.use('/api/v1/users', require('./routes/userRoutes'));
 
-// Health check endpoint
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [Health]
+ *     description: Check if the server is running
+ *     responses:
+ *       200:
+ *         description: Server is running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: 'Server is running'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ */
 app.get('/health', (req, res) => {
-  res.json({ status: 'Server is running', timestamp: new Date() });
+  res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
+  
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation error',
+      message: Object.values(err.errors).map(e => e.message).join(', ')
+    });
+  }
+  
+  // Mongoose cast error (invalid ObjectId)
+  if (err.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid ID format',
+      message: 'Please provide a valid ID'
+    });
+  }
+  
+  // Duplicate key error
+  if (err.code === 11000) {
+    return res.status(400).json({
+      success: false,
+      error: 'Duplicate entry',
+      message: 'This record already exists'
+    });
+  }
+  
+  // Default error
+  res.status(err.status || 500).json({
     success: false,
-    error: 'Internal server error',
-    message: err.message
+    error: err.message || 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.stack : 'An error occurred'
   });
 });
 
@@ -110,7 +210,14 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📚 Swagger Docs available at http://localhost:${PORT}/api-docs`);
-});
+
+// Only listen if not in Vercel serverless environment
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📚 Swagger Docs available at http://localhost:${PORT}/api-docs`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;

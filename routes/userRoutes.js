@@ -20,6 +20,7 @@ module.exports = router;
  *         schema:
  *           type: string
  *         description: User ID
+ *         example: '507f1f77bcf86cd799439012'
  *     responses:
  *       200:
  *         description: User's tasks retrieved successfully
@@ -35,6 +36,21 @@ module.exports = router;
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Task'
+ *                 count:
+ *                   type: number
+ *                   example: 3
+ *       400:
+ *         description: Invalid user ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
