@@ -15,8 +15,17 @@ if (process.env.NODE_ENV !== 'production') {
   console.log('   PORT:', process.env.PORT || '3000 (default)');
 }
 
-// Connect to MongoDB
-connectDB();
+// MongoDB connection middleware - ensures connection on first API request
+const ensureDB = async (req, res, next) => {
+  try {
+    // This will use cached connection if available
+    await connectDB();
+  } catch (err) {
+    // Don't block request if connection fails - routes will handle it
+    console.error('DB connection attempt failed:', err.message);
+  }
+  next();
+};
 
 // Swagger Configuration
 const swaggerOptions = {
@@ -37,8 +46,8 @@ const swaggerOptions = {
         description: 'Development Server'
       },
       {
-        url: 'https://your-vercel-url.vercel.app',
-        description: 'Production Server (update after deployment)'
+        url: 'https://task20-one.vercel.app',
+        description: 'Production Server'
       }
     ],
     tags: [
@@ -95,8 +104,69 @@ const swaggerOptions = {
   apis: ['./routes/*.js']
 };
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger setup - using CDN for better serverless compatibility
+let swaggerSpec;
+try {
+  swaggerSpec = swaggerJsdoc(swaggerOptions);
+  
+  // Swagger JSON endpoint (for Swagger UI to load)
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
+  
+  // Swagger UI - serve from CDN (works better in serverless)
+  app.get('/api-docs', (req, res) => {
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Management API Documentation</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+  <style>
+    html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { margin:0; background: #fafafa; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      const ui = SwaggerUIBundle({
+        url: window.location.origin + '/api-docs.json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        validatorUrl: null
+      });
+    };
+  </script>
+</body>
+</html>`;
+    res.send(html);
+  });
+  
+  // Also try standard Swagger UI setup as fallback
+  app.use('/api-docs-swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  
+} catch (err) {
+  console.error('Swagger setup error:', err.message);
+  // Fallback endpoint
+  app.get('/api-docs', (req, res) => {
+    res.json({ error: 'Swagger documentation unavailable', message: err.message });
+  });
+}
 
 // Middleware
 app.use(helmet({
@@ -131,9 +201,9 @@ app.get('/', (req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/v1/tasks', require('./routes/taskRoutes'));
-app.use('/api/v1/users', require('./routes/userRoutes'));
+// API Routes - ensure DB connection on first request
+app.use('/api/v1/tasks', ensureDB, require('./routes/taskRoutes'));
+app.use('/api/v1/users', ensureDB, require('./routes/userRoutes'));
 
 /**
  * @swagger
@@ -163,7 +233,8 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
   
   // Mongoose validation error
   if (err.name === 'ValidationError') {
@@ -192,11 +263,20 @@ app.use((err, req, res, next) => {
     });
   }
   
+  // MongoDB connection error
+  if (err.name === 'MongoNetworkError' || err.name === 'MongooseError') {
+    return res.status(503).json({
+      success: false,
+      error: 'Database connection error',
+      message: 'Unable to connect to database. Please try again later.'
+    });
+  }
+  
   // Default error
   res.status(err.status || 500).json({
     success: false,
     error: err.message || 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.stack : 'An error occurred'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
   });
 });
 
