@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middlewares/authMiddleware');
 const controller = require('../controllers/userController');
 
 
-router.get('/:userId/tasks', authMiddleware, controller.getTasksByUser);
+router.get('/:userId/tasks', controller.getTasksByUser);
 
 module.exports = router;
 
@@ -14,8 +13,6 @@ module.exports = router;
  *   get:
  *     summary: Get all tasks assigned to a specific user
  *     tags: [Users]
- *     security:
- *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -38,12 +35,6 @@ module.exports = router;
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Task'
- *       401:
- *         description: Unauthorized - missing or invalid API key
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:

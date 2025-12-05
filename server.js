@@ -34,14 +34,7 @@ const swaggerOptions = {
         description: 'Production Server (update after deployment)'
       }
     ],
-    components: {
-      securitySchemes: {
-        ApiKeyAuth: {
-          type: 'apiKey',
-          in: 'header',
-          name: 'x-api-key',
-          description: 'API Key for authentication'
-        }
+    
       },
       schemas: {
         Task: {
@@ -63,7 +56,7 @@ const swaggerOptions = {
           properties: {
             _id: { type: 'string', example: '507f1f77bcf86cd799439012' },
             name: { type: 'string', example: 'Cha Eunwoo' },
-            email: { type: 'string', example: 'eunwoo@example.com' },
+            email: { type: 'string', example: 'eunwoo@gmail.com' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' }
           }
@@ -76,8 +69,6 @@ const swaggerOptions = {
             message: { type: 'string' }
           }
         }
-      }
-    }
   },
   apis: ['./routes/*.js']
 };

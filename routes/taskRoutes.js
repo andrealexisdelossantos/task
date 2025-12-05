@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 
 const validateTask = require('../middlewares/validateTask');
-const authMiddleware = require('../middlewares/authMiddleware');
 const controller = require('../controllers/taskController');
 
 
@@ -10,15 +9,15 @@ router.get('/search/title', controller.searchByTitle);
 router.get('/search/title', controller.searchByTitle);
 
 router.get('/', controller.getAllTasks);
-router.post('/', authMiddleware, validateTask, controller.createTask);
+router.post('/',  validateTask, controller.createTask);
 router.get('/:id', controller.getTaskById);
-router.put('/:id', authMiddleware, validateTask, controller.updateTask);
-router.patch('/:id', authMiddleware, controller.patchTask);
-router.delete('/:id', authMiddleware, controller.deleteTask);
-router.put('/:id/complete', authMiddleware, controller.markComplete);
+router.put('/:id', validateTask, controller.updateTask);
+router.patch('/:id', controller.patchTask);
+router.delete('/:id',  controller.deleteTask);
+router.put('/:id/complete', controller.markComplete);
 
-router.put('/:id/progress', authMiddleware, controller.updateProgress);
-router.post('/:id/assign', authMiddleware, controller.assignTask);
+router.put('/:id/progress', controller.updateProgress);
+router.post('/:id/assign', controller.assignTask);
 
 module.exports = router;
 
@@ -112,8 +111,6 @@ module.exports = router;
  *   post:
  *     summary: Create a new task
  *     tags: [Tasks]
- *     security:
- *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -158,12 +155,6 @@ module.exports = router;
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: Unauthorized - missing or invalid API key
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  */
 
 
@@ -201,8 +192,6 @@ module.exports = router;
  *   put:
  *     summary: Update a task completely
  *     tags: [Tasks]
- *     security:
- *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -244,8 +233,6 @@ module.exports = router;
  *   patch:
  *     summary: Partially update a task
  *     tags: [Tasks]
- *     security:
- *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -284,8 +271,6 @@ module.exports = router;
  *   delete:
  *     summary: Delete a task
  *     tags: [Tasks]
- *     security:
- *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -314,8 +299,6 @@ module.exports = router;
  *   put:
  *     summary: Mark a task as completed
  *     tags: [Tasks]
- *     security:
- *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -343,8 +326,6 @@ module.exports = router;
  *   put:
  *     summary: Update task progress/status
  *     tags: [Tasks]
- *     security:
- *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -383,8 +364,6 @@ module.exports = router;
  *   post:
  *     summary: Assign a task to a user
  *     tags: [Tasks]
- *     security:
- *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
  *         name: id

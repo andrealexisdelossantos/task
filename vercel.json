@@ -14,7 +14,6 @@
   ],
   "env": {
     "MONGODB_URI": "@MONGODB_URI",
-    "API_KEY": "@API_KEY",
     "CORS_ORIGIN": "@CORS_ORIGIN",
     "PORT": "3000"
   }
